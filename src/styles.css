@@ -107,6 +107,18 @@
   --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
   --sidebar-border: oklch(0.929 0.013 255.508);
   --sidebar-ring: oklch(0.704 0.04 256.788);
+
+  --trivia-bg: oklch(0.17 0 0);
+  --trivia-card: oklch(0.25 0.02 270);
+  --trivia-text: oklch(0.97 0 0);
+  --trivia-info: oklch(0.75 0.08 270);
+  --trivia-question-bg: oklch(0.3 0.02 270);
+  --trivia-question-border: oklch(0.33 0.02 270);
+  --trivia-answer: oklch(0.38 0.05 270);
+  --trivia-answer-hover: oklch(0.45 0.12 270);
+  --trivia-correct: oklch(0.55 0.18 145);
+  --trivia-wrong: oklch(0.5 0.18 25);
+  --trivia-disabled: oklch(0.35 0.02 270);
 }
 
 .dark {
