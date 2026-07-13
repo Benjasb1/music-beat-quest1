@@ -122,23 +122,25 @@ function Index() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-[#111] p-4 flex items-center justify-center">
-      <div className="w-full max-w-[720px] rounded-2xl bg-[#1f1f2e] p-6 shadow-[0_12px_32px_rgba(0,0,0,0.45)]">
-        <h1 className="mb-4 text-center text-[#f7f7f7] text-3xl font-bold">Trivia Musical</h1>
-        <p className="mb-5 text-center text-[#b8c0ff] text-[0.95rem]">
+    <div className="flex min-h-screen w-full items-center justify-center bg-trivia-bg p-4">
+      <div className="w-full max-w-3xl rounded-2xl bg-trivia-card p-6 shadow-[0_12px_32px_rgba(0,0,0,0.45)]">
+        <h1 className="mb-4 text-center text-3xl font-bold text-trivia-text">
+          Trivia Musical
+        </h1>
+        <p className="mb-5 text-center text-trivia-info">
           Adivina el género musical o la cultura general musical. Comienza en fácil y avanza hasta difícil.
         </p>
 
-        <div className="mb-5 rounded-xl border border-[#33334f] bg-[#28293f] p-5">
+        <div className="mb-5 rounded-xl border border-trivia-question-border bg-trivia-question-bg p-5">
           {!finished ? (
             <>
-              <h2 className="mb-4 text-center text-[#f7f7f7] text-xl font-semibold">
+              <h2 className="mb-4 text-center text-xl font-semibold text-trivia-text">
                 {question.text} ({question.difficulty})
               </h2>
               <div className="flex flex-col gap-2">
                 {question.answers.map((answer, index) => {
-                  const isCorrect = index === question.correct;
-                  const isWrong = selectedIndex === index && selectedIndex !== question.correct;
+                  const isCorrect = answered && index === question.correct;
+                  const isWrong = answered && selectedIndex === index && selectedIndex !== question.correct;
 
                   return (
                     <button
@@ -146,12 +148,14 @@ function Index() {
                       disabled={answered}
                       onClick={() => selectAnswer(index)}
                       className={[
-                        "w-full rounded-[10px] px-3 py-3 text-[#fff] transition-colors duration-200",
-                        "bg-[#3b3d66] hover:bg-[#5b5ec6]",
+                        "w-full rounded-[10px] px-3 py-3 text-white transition-colors duration-200",
+                        "bg-trivia-answer hover:bg-trivia-answer-hover",
                         answered && "cursor-default",
-                        isCorrect ? "bg-[#2cae2c] hover:bg-[#2cae2c]" : "",
-                        isWrong ? "bg-[#c12f2f] hover:bg-[#c12f2f]" : "",
-                      ].join(" ")}
+                        isCorrect && "bg-trivia-correct hover:bg-trivia-correct",
+                        isWrong && "bg-trivia-wrong hover:bg-trivia-wrong",
+                      ]
+                        .filter(Boolean)
+                        .join(" ")}
                     >
                       {answer}
                     </button>
@@ -160,27 +164,27 @@ function Index() {
               </div>
             </>
           ) : (
-            <h2 className="text-center text-[#f7f7f7] text-xl font-semibold">
+            <h2 className="text-center text-xl font-semibold text-trivia-text">
               ¡Trivia terminada! Tu puntaje final es {score} puntos.
             </h2>
           )}
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="text-base font-bold text-[#f7f7f7]">
+          <div className="text-base font-bold text-trivia-text">
             Puntos: <span>{score}</span>
           </div>
           <div className="flex gap-3">
             <button
               onClick={handleNext}
               disabled={!answered || finished}
-              className="rounded-[10px] bg-[#5b5ec6] px-4 py-2.5 text-[#fff] transition-colors disabled:cursor-not-allowed disabled:bg-[#44476c]"
+              className="rounded-[10px] bg-trivia-answer-hover px-4 py-2.5 text-white transition-colors disabled:cursor-not-allowed disabled:bg-trivia-disabled"
             >
               {currentIndex === questions.length - 1 && !finished ? "Terminar" : "Siguiente"}
             </button>
             <button
               onClick={handleRestart}
-              className="rounded-[10px] bg-[#5b5ec6] px-4 py-2.5 text-[#fff] transition-colors"
+              className="rounded-[10px] bg-trivia-answer-hover px-4 py-2.5 text-white transition-colors"
             >
               Reiniciar
             </button>
