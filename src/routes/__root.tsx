@@ -85,6 +85,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Trivia Musical" },
+      { name: "twitter:description", content: "Adivina géneros musicales y cultura musical en esta trivia interactiva." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/eca3cfe1-ac71-4307-b7ea-1416ecd5d148/id-preview-91cbbe63--d5e3b064-6b66-4784-a0e4-9ed7626e7b12.lovable.app-1783904231725.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/eca3cfe1-ac71-4307-b7ea-1416ecd5d148/id-preview-91cbbe63--d5e3b064-6b66-4784-a0e4-9ed7626e7b12.lovable.app-1783904231725.png" },
     ],
     links: [
       {
