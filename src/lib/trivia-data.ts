@@ -52,7 +52,7 @@ export const categories: Category[] = [
       { text: "¿Quién es conocido como el 'Rey del Pop'?", answers: ["Elvis Presley", "Prince", "Michael Jackson", "Freddie Mercury"], correct: 2 },
       { text: "¿De qué país es la banda Soda Stereo?", answers: ["Argentina", "Chile", "México", "España"], correct: 0 },
       { text: "¿Quién fue el cantante de Queen?", answers: ["Mick Jagger", "Freddie Mercury", "Bono", "Robert Plant"], correct: 1 },
-      { text: "¿Qué artista argentina canta 'Muchachos' (no) y 'Tusa' (sí) junto a Karol G?", answers: ["Lali", "Tini", "Emilia", "Nicki Minaj"], correct: 3 },
+      { text: "¿Qué rapera canta 'Tusa' junto a Karol G?", answers: ["Lali", "Tini", "Emilia", "Nicki Minaj"], correct: 3 },
       { text: "¿Quién compuso 'Las cuatro estaciones'?", answers: ["Mozart", "Bach", "Vivaldi", "Beethoven"], correct: 2 },
     ],
   },
