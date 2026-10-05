@@ -125,7 +125,7 @@ function Index() {
     <div className="flex min-h-screen w-full items-center justify-center bg-trivia-bg p-4">
       <div className="w-full max-w-3xl rounded-2xl bg-trivia-card p-6 shadow-[0_12px_32px_rgba(0,0,0,0.45)]">
         <h1 className="mb-4 text-center text-3xl font-bold text-trivia-text">
-          Trivia Musical
+          Trivia Maestra
         </h1>
         <p className="mb-5 text-center text-trivia-info">
           Adivina el género musical o la cultura general musical. Comienza en fácil y avanza hasta difícil.
