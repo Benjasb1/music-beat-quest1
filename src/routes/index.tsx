@@ -31,6 +31,24 @@ const accent: Record<string, string> = {
   purple: "bg-neon-purple",
 };
 
+const glow: Record<string, string> = {
+  pink: "hover:border-neon-pink hover:shadow-[0_0_28px_-4px_var(--neon-pink)]",
+  cyan: "hover:border-neon-cyan hover:shadow-[0_0_28px_-4px_var(--neon-cyan)]",
+  lime: "hover:border-neon-lime hover:shadow-[0_0_28px_-4px_var(--neon-lime)]",
+  orange: "hover:border-neon-orange hover:shadow-[0_0_28px_-4px_var(--neon-orange)]",
+  yellow: "hover:border-neon-yellow hover:shadow-[0_0_28px_-4px_var(--neon-yellow)]",
+  purple: "hover:border-neon-purple hover:shadow-[0_0_28px_-4px_var(--neon-purple)]",
+};
+type Stats = { games: number; bestStreak: number };
+const STATS_KEY = "trivia-maestra-stats";
+function loadStats(): Record<string, Stats> {
+  try {
+    return JSON.parse(localStorage.getItem(STATS_KEY) || "{}");
+  } catch {
+    return {};
+  }
+}
+
 type Result = "correct" | "wrong" | "timeout" | null;
 type ScoreEntry = { name: string; score: number; date: number };
 const STORAGE_KEY = "trivia-maestra-scores";
@@ -49,7 +67,13 @@ function Index() {
   const [name, setName] = useState("");
   const [scores, setScores] = useState<ScoreEntry[]>([]);
 
-  useEffect(() => setScores(loadScores()), []);
+  const [allStats, setAllStats] = useState<Record<string, Stats>>({});
+  useEffect(() => {
+    setScores(loadScores());
+    setAllStats(loadStats());
+  }, []);
+  const statKey = name.trim().toLowerCase();
+  const myStats = allStats[statKey] ?? { games: 0, bestStreak: 0 };
 
   const deck = useMemo<(Question & { cat: string })[]>(() => {
     if (!playing) return [];
@@ -64,7 +88,12 @@ function Index() {
   const allSelected = selected.length === categories.length;
   const canPlay = selected.length > 0 && name.trim().length > 0;
 
-  const saveScore = (score: number) => {
+  const saveScore = (score: number, streak: number) => {
+    const st = loadStats();
+    const cur = st[statKey] ?? { games: 0, bestStreak: 0 };
+    st[statKey] = { games: cur.games + 1, bestStreak: Math.max(cur.bestStreak, streak) };
+    localStorage.setItem(STATS_KEY, JSON.stringify(st));
+    setAllStats(st);
     const next = [...loadScores(), { name: name.trim(), score, date: Date.now() }]
       .sort((a, b) => b.score - a.score)
       .slice(0, 20);
@@ -90,7 +119,7 @@ function Index() {
         </div>
       </header>
 
-      <main className="relative mx-auto grid max-w-7xl gap-8 px-6 py-10 lg:grid-cols-[320px_1fr]">
+      <main className="relative mx-auto grid max-w-7xl gap-8 px-6 py-10 lg:grid-cols-[260px_1fr] xl:grid-cols-[260px_1fr_260px]">
         <aside className="order-2 h-fit rounded-2xl border border-trivia-question-border bg-trivia-card/80 p-5 backdrop-blur lg:order-1 lg:sticky lg:top-6">
           <h2 className="text-sm font-semibold uppercase tracking-widest text-trivia-info">Tabla de puntajes</h2>
           {scores.length === 0 ? (
@@ -145,7 +174,7 @@ function Index() {
                 <button
                   key={c.id}
                   onClick={() => toggle(c.id)}
-                  className={`group relative overflow-hidden rounded-xl border p-5 text-left transition-all hover:-translate-y-0.5 ${on ? "border-neon-pink bg-trivia-answer shadow-[0_8px_30px_-10px_var(--neon-pink)]" : "border-trivia-question-border bg-trivia-card hover:border-trivia-answer-hover"}`}
+                  className={`group relative overflow-hidden rounded-xl border p-5 text-left transition-all hover:-translate-y-1 ${glow[c.color]} ${on ? "border-neon-pink bg-trivia-answer shadow-[0_8px_30px_-10px_var(--neon-pink)]" : "border-trivia-question-border bg-trivia-card"}`}
                 >
                   <span className={`absolute inset-x-0 top-0 h-1 ${accent[c.color]}`} />
                   <div className="flex items-start justify-between">
@@ -172,24 +201,42 @@ function Index() {
             </span>
           </div>
         </section>
+
+        <aside className="order-3 h-fit rounded-2xl border border-trivia-question-border bg-trivia-card/80 p-5 backdrop-blur lg:col-span-2 xl:col-span-1 xl:sticky xl:top-6">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-trivia-info">Tus estadísticas</h2>
+          <p className="mt-1 truncate text-sm text-trivia-info">{name.trim() || "Ingresá tu nombre"}</p>
+          <div className="mt-4 grid gap-3">
+            <div className="rounded-xl border border-trivia-question-border bg-trivia-question-bg/60 p-4">
+              <div className="text-xs uppercase tracking-wider text-trivia-info">Partidas jugadas</div>
+              <div className="mt-1 font-mono text-3xl font-black tabular-nums text-neon-cyan">{name.trim() ? myStats.games : "–"}</div>
+            </div>
+            <div className="rounded-xl border border-trivia-question-border bg-trivia-question-bg/60 p-4">
+              <div className="text-xs uppercase tracking-wider text-trivia-info">Mejor racha de aciertos</div>
+              <div className="mt-1 font-mono text-3xl font-black tabular-nums text-neon-lime">{name.trim() ? myStats.bestStreak : "–"} <span className="text-base">🔥</span></div>
+            </div>
+          </div>
+        </aside>
       </main>
     </div>
   );
 }
 
-function Game({ deck, player, onFinish, onExit }: { deck: (Question & { cat: string })[]; player: string; onFinish: (s: number) => void; onExit: () => void }) {
+function Game({ deck, player, onFinish, onExit }: { deck: (Question & { cat: string })[]; player: string; onFinish: (s: number, streak: number) => void; onExit: () => void }) {
   const [i, setI] = useState(0);
   const [score, setScore] = useState(0);
   const [result, setResult] = useState<Result>(null);
   const [picked, setPicked] = useState<number | null>(null);
   const [time, setTime] = useState(SECONDS_PER_QUESTION);
   const [finished, setFinished] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const [best, setBest] = useState(0);
   const q = deck[i];
 
   useEffect(() => {
     if (result || finished) return;
     if (time <= 0) {
       setResult("timeout");
+      setStreak(0);
       return;
     }
     const t = setTimeout(() => setTime((s) => s - 1), 1000);
@@ -202,9 +249,14 @@ function Game({ deck, player, onFinish, onExit }: { deck: (Question & { cat: str
     if (idx === q.correct) {
       setResult("correct");
       setScore((s) => s + POINTS_CORRECT);
+      setStreak((k) => {
+        setBest((b) => Math.max(b, k + 1));
+        return k + 1;
+      });
     } else {
       setResult("wrong");
       setScore((s) => s + POINTS_WRONG);
+      setStreak(0);
     }
   };
 
@@ -216,9 +268,9 @@ function Game({ deck, player, onFinish, onExit }: { deck: (Question & { cat: str
       setTime(SECONDS_PER_QUESTION);
     } else {
       setFinished(true);
-      onFinish(score);
+      onFinish(score, best);
     }
-  }, [i, deck.length, onFinish, score]);
+  }, [i, deck.length, onFinish, score, best]);
 
   const pct = (time / SECONDS_PER_QUESTION) * 100;
   const barColor = time > 8 ? "bg-neon-lime" : time > 4 ? "bg-neon-yellow" : "bg-trivia-wrong";
@@ -232,6 +284,7 @@ function Game({ deck, player, onFinish, onExit }: { deck: (Question & { cat: str
           <button onClick={onExit} className="rounded-lg border border-trivia-question-border px-3 py-1.5 text-sm font-medium hover:bg-trivia-answer">← Lobby</button>
           <div className="flex items-center gap-3 text-sm">
             <span className="text-trivia-info">{player}</span>
+            {streak > 1 && <span className="rounded-lg bg-trivia-correct/25 px-2.5 py-1.5 font-bold text-neon-lime">🔥 {streak}</span>}
             <span className="rounded-lg bg-neon-yellow px-3 py-1.5 font-bold text-trivia-bg tabular-nums">{score} pts</span>
           </div>
         </div>
