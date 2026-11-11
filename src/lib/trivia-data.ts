@@ -18,9 +18,9 @@ export const SECONDS_PER_QUESTION = 15;
 
 export const categories: Category[] = [
   {
-    id: "generos",
-    name: "Géneros",
-    emoji: "🎸",
+    id: "musica",
+    name: "Música",
+    emoji: "🎵",
     color: "pink",
     questions: [
       { text: "¿Qué género se asocia con guitarras eléctricas, ritmos rápidos y actitud rebelde?", answers: ["Rock", "Salsa", "Tango", "Reguetón"], correct: 0 },
@@ -28,32 +28,46 @@ export const categories: Category[] = [
       { text: "¿Qué género nació en EE.UU. y destaca por la improvisación y los vientos?", answers: ["Electrónica", "Country", "Jazz", "Reguetón"], correct: 2 },
       { text: "¿Qué estilo surgió en el Río de la Plata con música melancólica y baile elegante?", answers: ["Merengue", "Pop", "Bolero", "Tango"], correct: 3 },
       { text: "¿Qué estilo usa escalas modales e improvisación extensa, pionero en los 60?", answers: ["Jazz modal", "Disco", "Bossa nova", "Salsa"], correct: 0 },
-    ],
-  },
-  {
-    id: "instrumentos",
-    name: "Instrumentos",
-    emoji: "🎹",
-    color: "cyan",
-    questions: [
       { text: "¿Cuántas cuerdas tiene una guitarra clásica estándar?", answers: ["4", "6", "8", "12"], correct: 1 },
       { text: "¿Qué instrumento es típico del tango argentino?", answers: ["Bandoneón", "Gaita", "Sitar", "Banjo"], correct: 0 },
       { text: "¿Cuántas teclas tiene un piano estándar?", answers: ["76", "61", "88", "100"], correct: 2 },
       { text: "¿A qué familia pertenece el saxofón?", answers: ["Metales", "Cuerdas", "Percusión", "Viento madera"], correct: 3 },
       { text: "¿Qué instrumento andino se hace con cañas de distinto largo?", answers: ["Charango", "Siku", "Bombo", "Quena"], correct: 1 },
-    ],
-  },
-  {
-    id: "artistas",
-    name: "Artistas",
-    emoji: "🎤",
-    color: "lime",
-    questions: [
       { text: "¿Quién es conocido como el 'Rey del Pop'?", answers: ["Elvis Presley", "Prince", "Michael Jackson", "Freddie Mercury"], correct: 2 },
       { text: "¿De qué país es la banda Soda Stereo?", answers: ["Argentina", "Chile", "México", "España"], correct: 0 },
       { text: "¿Quién fue el cantante de Queen?", answers: ["Mick Jagger", "Freddie Mercury", "Bono", "Robert Plant"], correct: 1 },
       { text: "¿Qué rapera canta 'Tusa' junto a Karol G?", answers: ["Lali", "Tini", "Emilia", "Nicki Minaj"], correct: 3 },
       { text: "¿Quién compuso 'Las cuatro estaciones'?", answers: ["Mozart", "Bach", "Vivaldi", "Beethoven"], correct: 2 },
+    ],
+  },
+  {
+    id: "deportes",
+    name: "Deportes",
+    emoji: "⚽",
+    color: "lime",
+    questions: [
+      { text: "¿Cuántos jugadores tiene un equipo de fútbol en cancha?", answers: ["9", "10", "11", "12"], correct: 2 },
+      { text: "¿Qué país ganó el Mundial de fútbol 2022?", answers: ["Argentina", "Francia", "Brasil", "Croacia"], correct: 0 },
+      { text: "¿Cada cuántos años se realizan los Juegos Olímpicos de verano?", answers: ["2", "3", "5", "4"], correct: 3 },
+      { text: "¿Cuántos puntos vale un triple en básquet?", answers: ["2", "3", "4", "1"], correct: 1 },
+      { text: "¿En qué deporte se destaca Manu Ginóbili?", answers: ["Tenis", "Rugby", "Básquet", "Hockey"], correct: 2 },
+      { text: "¿Cómo se llama la selección argentina de rugby?", answers: ["Los Pumas", "Las Leonas", "Los Gladiadores", "Los Cóndores"], correct: 0 },
+      { text: "¿Qué torneo de tenis se juega sobre polvo de ladrillo en París?", answers: ["Wimbledon", "US Open", "Australian Open", "Roland Garros"], correct: 3 },
+    ],
+  },
+  {
+    id: "cultura",
+    name: "Cultura",
+    emoji: "📚",
+    color: "cyan",
+    questions: [
+      { text: "¿Quién escribió 'Don Quijote de la Mancha'?", answers: ["Borges", "Cervantes", "García Márquez", "Cortázar"], correct: 1 },
+      { text: "¿Quién pintó la 'Mona Lisa'?", answers: ["Leonardo da Vinci", "Picasso", "Van Gogh", "Miguel Ángel"], correct: 0 },
+      { text: "¿Cuál es la capital de Australia?", answers: ["Sídney", "Melbourne", "Canberra", "Perth"], correct: 2 },
+      { text: "¿Quién escribió 'El Aleph'?", answers: ["Sabato", "Cortázar", "Bioy Casares", "Jorge Luis Borges"], correct: 3 },
+      { text: "¿En qué país están las pirámides de Giza?", answers: ["México", "Egipto", "Perú", "Grecia"], correct: 1 },
+      { text: "¿Qué día se celebra la Revolución de Mayo en Argentina?", answers: ["25 de mayo", "9 de julio", "20 de junio", "17 de agosto"], correct: 0 },
+      { text: "¿Cuál es el río más largo de América del Sur?", answers: ["Paraná", "Orinoco", "Amazonas", "Uruguay"], correct: 2 },
     ],
   },
   {
