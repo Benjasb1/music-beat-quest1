@@ -11,10 +11,10 @@ import {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Trivia Maestra — Elegí tu categoría musical" },
-      { name: "description", content: "Trivia musical contrarreloj: elegí categorías, respondé antes de que se acabe el tiempo y sumá puntos." },
-      { property: "og:title", content: "Trivia Maestra — Trivia musical contrarreloj" },
-      { property: "og:description", content: "Elegí categorías, respondé contra el reloj y sumá puntos." },
+      { title: "Trivia Maestra — Elegí tu categoría" },
+      { name: "description", content: "Trivia contrarreloj con categorías de música, Maestro Mayor de Obras e Informática, con tabla de puntajes." },
+      { property: "og:title", content: "Trivia Maestra — Trivia contrarreloj" },
+      { property: "og:description", content: "Elegí categorías, respondé contra el reloj y entrá en la tabla de puntajes." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -22,91 +22,162 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-const catStyles: Record<string, string> = {
-  pink: "from-neon-pink to-neon-orange",
-  cyan: "from-neon-cyan to-neon-purple",
-  lime: "from-neon-lime to-neon-cyan",
-  orange: "from-neon-orange to-neon-yellow",
+const accent: Record<string, string> = {
+  pink: "bg-neon-pink",
+  cyan: "bg-neon-cyan",
+  lime: "bg-neon-lime",
+  orange: "bg-neon-orange",
+  yellow: "bg-neon-yellow",
+  purple: "bg-neon-purple",
 };
 
 type Result = "correct" | "wrong" | "timeout" | null;
+type ScoreEntry = { name: string; score: number; date: number };
+const STORAGE_KEY = "trivia-maestra-scores";
+
+function loadScores(): ScoreEntry[] {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
 
 function Index() {
   const [selected, setSelected] = useState<string[]>([]);
   const [playing, setPlaying] = useState(false);
+  const [name, setName] = useState("");
+  const [scores, setScores] = useState<ScoreEntry[]>([]);
+
+  useEffect(() => setScores(loadScores()), []);
 
   const deck = useMemo<(Question & { cat: string })[]>(() => {
     if (!playing) return [];
-    const qs = categories
+    return categories
       .filter((c) => selected.includes(c.id))
-      .flatMap((c) => c.questions.map((q) => ({ ...q, cat: `${c.emoji} ${c.name}` })));
-    return qs.sort(() => Math.random() - 0.5);
+      .flatMap((c) => c.questions.map((q) => ({ ...q, cat: c.name })))
+      .sort(() => Math.random() - 0.5);
   }, [playing, selected]);
 
   const toggle = (id: string) =>
     setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
   const allSelected = selected.length === categories.length;
+  const canPlay = selected.length > 0 && name.trim().length > 0;
 
-  if (playing) return <Game deck={deck} onExit={() => setPlaying(false)} />;
+  const saveScore = (score: number) => {
+    const next = [...loadScores(), { name: name.trim(), score, date: Date.now() }]
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 20);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+    setScores(next);
+  };
+
+  if (playing)
+    return <Game deck={deck} player={name.trim()} onFinish={saveScore} onExit={() => setPlaying(false)} />;
+
+  const total = categories.filter((c) => selected.includes(c.id)).reduce((n, c) => n + c.questions.length, 0);
 
   return (
-    <div className="min-h-screen w-full bg-trivia-bg bg-[radial-gradient(circle_at_20%_10%,var(--neon-purple)_0%,transparent_40%),radial-gradient(circle_at_80%_90%,var(--neon-pink)_0%,transparent_40%)] p-4 text-trivia-text">
-      <div className="mx-auto max-w-4xl py-10">
-        <h1 className="bg-gradient-to-r from-neon-yellow via-neon-pink to-neon-cyan bg-clip-text text-center text-5xl font-black tracking-tight text-transparent md:text-7xl">
-          Trivia Maestra
-        </h1>
-        <p className="mt-3 text-center text-lg text-trivia-info">🎶 Elegí una o varias categorías y ganale al reloj</p>
-
-        <div className="mx-auto mt-6 flex max-w-xl flex-wrap justify-center gap-3 text-sm font-bold">
-          <span className="rounded-full bg-trivia-correct px-4 py-1.5">✅ Correcta: +{POINTS_CORRECT}</span>
-          <span className="rounded-full bg-trivia-wrong px-4 py-1.5">❌ Incorrecta: {POINTS_WRONG}</span>
-          <span className="rounded-full bg-trivia-disabled px-4 py-1.5">⏰ Sin responder: 0</span>
-          <span className="rounded-full bg-neon-purple px-4 py-1.5">⏱️ {SECONDS_PER_QUESTION}s por pregunta</span>
+    <div className="min-h-screen w-full bg-trivia-bg text-trivia-text">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--neon-purple)_25%,transparent),transparent_60%)]" />
+      <header className="relative border-b border-trivia-question-border">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-lg bg-gradient-to-br from-neon-pink to-neon-purple font-black">T</div>
+            <span className="text-lg font-bold tracking-tight">Trivia Maestra</span>
+          </div>
+          <span className="text-sm text-trivia-info">{categories.length} categorías · {SECONDS_PER_QUESTION}s por pregunta</span>
         </div>
+      </header>
 
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {categories.map((c) => {
-            const on = selected.includes(c.id);
-            return (
-              <button
-                key={c.id}
-                onClick={() => toggle(c.id)}
-                className={`group relative overflow-hidden rounded-2xl bg-gradient-to-br ${catStyles[c.color]} p-[3px] transition-transform hover:scale-[1.03] ${on ? "scale-[1.02] shadow-[0_0_30px_var(--neon-pink)]" : "opacity-80"}`}
-              >
-                <div className={`flex h-full items-center gap-4 rounded-[14px] p-5 text-left ${on ? "bg-transparent" : "bg-trivia-card"}`}>
-                  <span className="text-5xl">{c.emoji}</span>
-                  <div className="flex-1">
-                    <div className="text-2xl font-extrabold">{c.name}</div>
-                    <div className="text-sm opacity-80">{c.questions.length} preguntas</div>
+      <main className="relative mx-auto grid max-w-7xl gap-8 px-6 py-10 lg:grid-cols-[320px_1fr]">
+        <aside className="order-2 h-fit rounded-2xl border border-trivia-question-border bg-trivia-card/80 p-5 backdrop-blur lg:order-1 lg:sticky lg:top-6">
+          <h2 className="text-sm font-semibold uppercase tracking-widest text-trivia-info">Tabla de puntajes</h2>
+          {scores.length === 0 ? (
+            <p className="mt-6 text-sm text-trivia-info">Todavía no hay partidas. ¡Sé el primero!</p>
+          ) : (
+            <ol className="mt-4 space-y-1.5">
+              {scores.map((s, idx) => (
+                <li key={s.date} className="flex items-center gap-3 rounded-lg px-3 py-2 odd:bg-trivia-question-bg/50">
+                  <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-md text-xs font-bold ${idx === 0 ? "bg-neon-yellow text-trivia-bg" : idx === 1 ? "bg-trivia-info text-trivia-bg" : idx === 2 ? "bg-neon-orange text-trivia-bg" : "bg-trivia-answer"}`}>{idx + 1}</span>
+                  <span className="flex-1 truncate font-medium">{s.name}</span>
+                  <span className="font-mono font-bold tabular-nums">{s.score}</span>
+                </li>
+              ))}
+            </ol>
+          )}
+        </aside>
+
+        <section className="order-1 lg:order-2">
+          <h1 className="text-4xl font-black tracking-tight md:text-6xl">
+            Poné a prueba lo que <span className="bg-gradient-to-r from-neon-pink via-neon-orange to-neon-yellow bg-clip-text text-transparent">sabés</span>
+          </h1>
+          <p className="mt-3 max-w-2xl text-trivia-info">Escribí tu nombre, elegí una o varias categorías y respondé antes de que termine el reloj.</p>
+
+          <div className="mt-6 flex flex-wrap gap-2 text-sm font-medium">
+            <span className="rounded-md border border-trivia-correct/50 bg-trivia-correct/15 px-3 py-1">Correcta +{POINTS_CORRECT}</span>
+            <span className="rounded-md border border-trivia-wrong/50 bg-trivia-wrong/15 px-3 py-1">Incorrecta {POINTS_WRONG}</span>
+            <span className="rounded-md border border-trivia-question-border bg-trivia-question-bg px-3 py-1">Sin responder 0</span>
+          </div>
+
+          <label className="mt-8 block">
+            <span className="text-sm font-semibold text-trivia-info">Tu nombre</span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={24}
+              placeholder="Ej: Santino"
+              className="mt-2 w-full max-w-sm rounded-xl border border-trivia-question-border bg-trivia-card px-4 py-3 outline-none transition focus:border-neon-pink focus:ring-2 focus:ring-neon-pink/30"
+            />
+          </label>
+
+          <div className="mt-8 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-widest text-trivia-info">Categorías</h2>
+            <button onClick={() => setSelected(allSelected ? [] : categories.map((c) => c.id))} className="text-sm font-semibold text-neon-cyan hover:underline">
+              {allSelected ? "Quitar todas" : "Seleccionar todas"}
+            </button>
+          </div>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {categories.map((c) => {
+              const on = selected.includes(c.id);
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => toggle(c.id)}
+                  className={`group relative overflow-hidden rounded-xl border p-5 text-left transition-all hover:-translate-y-0.5 ${on ? "border-neon-pink bg-trivia-answer shadow-[0_8px_30px_-10px_var(--neon-pink)]" : "border-trivia-question-border bg-trivia-card hover:border-trivia-answer-hover"}`}
+                >
+                  <span className={`absolute inset-x-0 top-0 h-1 ${accent[c.color]}`} />
+                  <div className="flex items-start justify-between">
+                    <span className="text-3xl">{c.emoji}</span>
+                    <span className={`grid h-6 w-6 place-items-center rounded-full border text-xs font-bold ${on ? "border-neon-pink bg-neon-pink" : "border-trivia-question-border"}`}>{on ? "✓" : ""}</span>
                   </div>
-                  <span className="text-2xl">{on ? "✔️" : "➕"}</span>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+                  <div className="mt-4 font-bold leading-tight">{c.name}</div>
+                  <div className="mt-1 text-sm text-trivia-info">{c.questions.length} preguntas</div>
+                </button>
+              );
+            })}
+          </div>
 
-        <div className="mt-8 flex flex-wrap justify-center gap-4">
-          <button
-            onClick={() => setSelected(allSelected ? [] : categories.map((c) => c.id))}
-            className="rounded-full border-2 border-neon-cyan px-6 py-3 font-bold text-neon-cyan transition-colors hover:bg-neon-cyan hover:text-trivia-bg"
-          >
-            {allSelected ? "Quitar todas" : "🌈 Seleccionar todas"}
-          </button>
-          <button
-            disabled={selected.length === 0}
-            onClick={() => setPlaying(true)}
-            className="rounded-full bg-gradient-to-r from-neon-pink to-neon-orange px-10 py-3 text-lg font-black shadow-[0_0_25px_var(--neon-pink)] transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
-          >
-            ¡Jugar! 🚀
-          </button>
-        </div>
-      </div>
+          <div className="mt-8 flex flex-wrap items-center gap-4">
+            <button
+              disabled={!canPlay}
+              onClick={() => setPlaying(true)}
+              className="rounded-xl bg-gradient-to-r from-neon-pink to-neon-orange px-8 py-3.5 font-bold shadow-[0_10px_30px_-10px_var(--neon-pink)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
+            >
+              Comenzar partida →
+            </button>
+            <span className="text-sm text-trivia-info">
+              {!name.trim() ? "Ingresá tu nombre para empezar" : selected.length === 0 ? "Elegí al menos una categoría" : `${total} preguntas seleccionadas`}
+            </span>
+          </div>
+        </section>
+      </main>
     </div>
   );
 }
 
-function Game({ deck, onExit }: { deck: (Question & { cat: string })[]; onExit: () => void }) {
+function Game({ deck, player, onFinish, onExit }: { deck: (Question & { cat: string })[]; player: string; onFinish: (s: number) => void; onExit: () => void }) {
   const [i, setI] = useState(0);
   const [score, setScore] = useState(0);
   const [result, setResult] = useState<Result>(null);
@@ -143,77 +214,88 @@ function Game({ deck, onExit }: { deck: (Question & { cat: string })[]; onExit: 
       setResult(null);
       setPicked(null);
       setTime(SECONDS_PER_QUESTION);
-    } else setFinished(true);
-  }, [i, deck.length]);
+    } else {
+      setFinished(true);
+      onFinish(score);
+    }
+  }, [i, deck.length, onFinish, score]);
 
   const pct = (time / SECONDS_PER_QUESTION) * 100;
   const barColor = time > 8 ? "bg-neon-lime" : time > 4 ? "bg-neon-yellow" : "bg-trivia-wrong";
+  const letters = ["A", "B", "C", "D"];
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-trivia-bg bg-[radial-gradient(circle_at_80%_10%,var(--neon-cyan)_0%,transparent_35%),radial-gradient(circle_at_10%_90%,var(--neon-purple)_0%,transparent_40%)] p-4 text-trivia-text">
-      <div className="w-full max-w-3xl rounded-3xl bg-gradient-to-br from-neon-pink via-neon-purple to-neon-cyan p-[3px] shadow-[0_0_40px_var(--neon-purple)]">
-        <div className="rounded-[22px] bg-trivia-card p-6">
-          <div className="mb-4 flex items-center justify-between">
-            <button onClick={onExit} className="rounded-full bg-trivia-answer px-4 py-1.5 text-sm font-bold hover:bg-trivia-answer-hover">← Lobby</button>
-            <div className="rounded-full bg-gradient-to-r from-neon-yellow to-neon-orange px-4 py-1.5 font-black text-trivia-bg">⭐ {score} pts</div>
+    <div className="flex min-h-screen w-full items-center justify-center bg-trivia-bg p-4 text-trivia-text">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,color-mix(in_oklab,var(--neon-cyan)_18%,transparent),transparent_60%)]" />
+      <div className="relative w-full max-w-3xl rounded-2xl border border-trivia-question-border bg-trivia-card p-6 shadow-2xl md:p-8">
+        <div className="mb-6 flex items-center justify-between">
+          <button onClick={onExit} className="rounded-lg border border-trivia-question-border px-3 py-1.5 text-sm font-medium hover:bg-trivia-answer">← Lobby</button>
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-trivia-info">{player}</span>
+            <span className="rounded-lg bg-neon-yellow px-3 py-1.5 font-bold text-trivia-bg tabular-nums">{score} pts</span>
           </div>
+        </div>
 
-          {finished ? (
-            <div className="py-10 text-center">
-              <div className="text-6xl">🏆</div>
-              <h2 className="mt-4 text-3xl font-black">¡Trivia terminada!</h2>
-              <p className="mt-2 text-xl text-trivia-info">Puntaje final: <span className="font-black text-neon-yellow">{score}</span> puntos</p>
-              <button onClick={onExit} className="mt-6 rounded-full bg-gradient-to-r from-neon-pink to-neon-orange px-8 py-3 font-black">Volver al lobby</button>
+        {finished ? (
+          <div className="py-10 text-center">
+            <div className="text-5xl">🏆</div>
+            <h2 className="mt-4 text-3xl font-black">¡Partida terminada, {player}!</h2>
+            <p className="mt-2 text-lg text-trivia-info">Puntaje final: <span className="font-black text-neon-yellow">{score}</span> puntos</p>
+            <p className="mt-1 text-sm text-trivia-info">Tu puntaje se guardó en la tabla.</p>
+            <button onClick={onExit} className="mt-6 rounded-xl bg-gradient-to-r from-neon-pink to-neon-orange px-8 py-3 font-bold">Volver al lobby</button>
+          </div>
+        ) : (
+          <>
+            <div className="mb-2 flex items-center justify-between text-sm">
+              <span className="font-semibold text-neon-cyan">{q.cat}</span>
+              <span className="text-trivia-info">Pregunta {i + 1} de {deck.length}</span>
             </div>
-          ) : (
-            <>
-              <div className="mb-2 flex items-center justify-between text-sm font-bold">
-                <span className="text-neon-cyan">{q.cat} · {i + 1}/{deck.length}</span>
-                <span className={`text-2xl tabular-nums ${time <= 4 ? "animate-pulse text-trivia-wrong" : "text-neon-lime"}`}>⏱️ {time}s</span>
-              </div>
-              <div className="mb-5 h-3 overflow-hidden rounded-full bg-trivia-question-bg">
+            <div className="mb-6 flex items-center gap-3">
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-trivia-question-bg">
                 <div className={`h-full ${barColor} transition-all duration-1000 ease-linear`} style={{ width: `${pct}%` }} />
               </div>
+              <span className={`w-12 text-right font-mono text-lg font-bold tabular-nums ${time <= 4 ? "animate-pulse text-trivia-wrong" : ""}`}>{time}s</span>
+            </div>
 
-              <h2 className="mb-2 text-center text-2xl font-bold">{q.text}</h2>
-              <p className="mb-5 text-center text-sm text-trivia-info">
-                <span className="text-neon-lime">+{POINTS_CORRECT} si acertás</span> · <span className="text-trivia-wrong">{POINTS_WRONG} si fallás</span> · 0 si no respondés
-              </p>
+            <h2 className="text-2xl font-bold leading-snug">{q.text}</h2>
+            <p className="mb-6 mt-2 text-sm text-trivia-info">
+              <span className="text-neon-lime">+{POINTS_CORRECT} si acertás</span> · <span className="text-trivia-wrong">{POINTS_WRONG} si fallás</span> · 0 si no respondés
+            </p>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                {q.answers.map((a, idx) => {
-                  const isCorrect = result && idx === q.correct;
-                  const isWrong = result === "wrong" && picked === idx;
-                  return (
-                    <button
-                      key={idx}
-                      disabled={!!result}
-                      onClick={() => answer(idx)}
-                      className={`rounded-xl px-4 py-4 text-lg font-bold transition-all ${
-                        isCorrect ? "bg-trivia-correct" : isWrong ? "bg-trivia-wrong" : "bg-trivia-answer hover:scale-[1.02] hover:bg-trivia-answer-hover"
-                      } ${result ? "cursor-default" : ""}`}
-                    >
-                      {a}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {result && (
-                <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-                  <div className={`rounded-xl px-4 py-2 text-lg font-black ${result === "correct" ? "bg-trivia-correct" : result === "wrong" ? "bg-trivia-wrong" : "bg-trivia-disabled"}`}>
-                    {result === "correct" && `¡Correcto! +${POINTS_CORRECT} puntos 🎉`}
-                    {result === "wrong" && `Incorrecto ${POINTS_WRONG} puntos 😬`}
-                    {result === "timeout" && "⏰ Se acabó el tiempo: 0 puntos"}
-                  </div>
-                  <button onClick={next} className="rounded-full bg-gradient-to-r from-neon-cyan to-neon-purple px-6 py-2.5 font-black">
-                    {i === deck.length - 1 ? "Terminar 🏁" : "Siguiente →"}
+            <div className="grid gap-3 sm:grid-cols-2">
+              {q.answers.map((a, idx) => {
+                const isCorrect = result && idx === q.correct;
+                const isWrong = result === "wrong" && picked === idx;
+                return (
+                  <button
+                    key={idx}
+                    disabled={!!result}
+                    onClick={() => answer(idx)}
+                    className={`flex items-center gap-3 rounded-xl border px-4 py-4 text-left font-medium transition-all ${
+                      isCorrect ? "border-trivia-correct bg-trivia-correct/25" : isWrong ? "border-trivia-wrong bg-trivia-wrong/25" : "border-trivia-question-border bg-trivia-question-bg hover:border-neon-cyan"
+                    } ${result ? "cursor-default" : ""}`}
+                  >
+                    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-trivia-answer text-sm font-bold">{letters[idx]}</span>
+                    {a}
                   </button>
+                );
+              })}
+            </div>
+
+            {result && (
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <div className={`rounded-lg px-4 py-2 font-semibold ${result === "correct" ? "bg-trivia-correct/25 text-neon-lime" : result === "wrong" ? "bg-trivia-wrong/25" : "bg-trivia-disabled"}`}>
+                  {result === "correct" && `¡Correcto! +${POINTS_CORRECT} puntos`}
+                  {result === "wrong" && `Incorrecto: ${POINTS_WRONG} puntos`}
+                  {result === "timeout" && "Se acabó el tiempo: 0 puntos"}
                 </div>
-              )}
-            </>
-          )}
-        </div>
+                <button onClick={next} className="rounded-xl bg-gradient-to-r from-neon-cyan to-neon-purple px-6 py-2.5 font-bold">
+                  {i === deck.length - 1 ? "Ver resultado" : "Siguiente →"}
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

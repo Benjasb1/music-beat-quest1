@@ -73,7 +73,7 @@ export const categories: Category[] = [
     id: "mmo",
     name: "Maestro Mayor de Obras",
     emoji: "🏗️",
-    color: "orange",
+    color: "yellow",
     questions: [
       { text: "¿En qué escala se dibuja habitualmente la planta de una vivienda?", answers: ["1:1", "1:50", "1:5000", "1:2"], correct: 1 },
       { text: "¿Qué elemento estructural transmite las cargas del edificio al suelo?", answers: ["Viga", "Losa", "Fundación", "Dintel"], correct: 2 },
@@ -88,7 +88,7 @@ export const categories: Category[] = [
     id: "ti",
     name: "Técnico en Informática",
     emoji: "💻",
-    color: "cyan",
+    color: "purple",
     questions: [
       { text: "¿Qué componente es considerado el 'cerebro' de la computadora?", answers: ["RAM", "CPU", "Disco duro", "Fuente"], correct: 1 },
       { text: "¿Qué tipo de memoria pierde sus datos al apagar la PC?", answers: ["ROM", "SSD", "RAM", "HDD"], correct: 2 },
